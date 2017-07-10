@@ -25,12 +25,12 @@ class Simulacion:
         self.acum_ganancias = 0.0
         self.acum_permanencia = 0.0
         self.objetos_temporales = []
-        self.columnas = ["Estado","Reloj","RND","Tiempo lleg. P1","Prox. lleg. P1","Tiempo lleg. P2","Prox. lleg. P2",
+        self.columnas = ["Estado","Reloj","RND P1","Tiempo lleg. P1","Prox. lleg. P1","RND P2","Tiempo lleg. P2","Prox. lleg. P2",
                     "Destino traslado","Fin traslado","Estado grua","Cola P1","Cola P2","Acum. Ganancias",
                     "Cont. Perdidos","Cont. Atendidos","Acum. Permanencia"]
         
     def simular(self):
-        tabla = pd.DataFrame(columns=self.columnas, index=range(1,self.iteraciones+1))
+        tabla = pd.DataFrame()
         contador_filas = 0
         contador_objetos = 0
         fila_actual = []
@@ -48,7 +48,7 @@ class Simulacion:
                 self.agregar_evento(nuevo_abandono)
                 nuevo_auto.abandono = nuevo_abandono
                 self.agregar_obj_temp(nuevo_auto)
-                evento_resp = self.grua.atender()
+                evento_resp = self.grua.trasladar(self.tiempo_actual)
                 rnd_llegada, tiempo_llegada = self.get_llegada_cliente(True)
                 prox_llegada = tiempo_llegada+self.tiempo_actual
                 self.agregar_evento(Evento("Llegada auto P1",prox_llegada))
@@ -64,7 +64,7 @@ class Simulacion:
                 self.agregar_evento(nuevo_abandono)
                 nuevo_auto.abandono = nuevo_abandono
                 self.agregar_obj_temp(nuevo_auto)
-                evento_resp = self.grua.trasladar()
+                evento_resp = self.grua.trasladar(self.tiempo_actual)
                 rnd_llegada, tiempo_llegada = self.get_llegada_cliente(False)
                 prox_llegada = tiempo_llegada + self.tiempo_actual
                 self.agregar_evento(Evento("Llegada auto P2", prox_llegada))
@@ -82,7 +82,7 @@ class Simulacion:
                     self.grua.carga -= 1
                     self.acum_ganancias += self.costo_auto
                 self.acum_ganancias -= self.costo_grua
-                evento_resp = self.grua.trasladar()
+                evento_resp = self.grua.trasladar(self.tiempo_actual)
                 if evento_resp is not None:
                     self.agregar_evento(evento_resp)
                     fila_actual = self.mostrar_recibe_traslado_p1(evento_resp)
@@ -97,7 +97,7 @@ class Simulacion:
                     self.grua.carga -= 1
                     self.acum_ganancias += self.costo_auto
                 self.acum_ganancias -= self.costo_grua
-                evento_resp = self.grua.trasladar()
+                evento_resp = self.grua.trasladar(self.tiempo_actual)
                 if evento_resp is not None:
                     self.agregar_evento(evento_resp)
                     fila_actual = self.mostrar_recibe_traslado_p2(evento_resp)
@@ -105,7 +105,7 @@ class Simulacion:
                     fila_actual = self.mostrar_recibe_p2()
             elif prox_evento.nombre == "Abandono":
                 if 1 == prox_evento.activo:
-                    self.caja_bancarios.realizar_abandono(self.tiempo_actual, prox_evento)
+                    self.grua.realizar_abandono(self.tiempo_actual, prox_evento)
                     self.cont_abandonos += 1
                     self.acum_ganancias -= self.costo_abandono
                     if not fin_mostrar and self.tiempo_actual >= self.mostrar_desde:
@@ -127,7 +127,11 @@ class Simulacion:
             if not fin_mostrar and self.tiempo_actual >= self.mostrar_desde:
                 contador_filas += 1
                 fila_actual = self.completar_fila(fila_actual, contador_filas)
-                tabla.loc[contador_filas] = fila_actual
+                if contador_filas == 1:
+                    tabla = fila_actual
+                else:
+                    tabla = pd.concat([tabla, fila_actual])
+                    
 
         #No toca contenido de aca para abajo
         tabla_recortada = tabla.loc[:][0:int(contador_filas)]
@@ -146,7 +150,7 @@ class Simulacion:
             return [rnd,tiempo_espera]#Evento("Llegada auto P2",self.tiempo_actual+tiempo_espera)]
 
     def agregar_obj_temp(self, obj):
-        descarte = [n for n in list if n.Estado == "Destino"]
+        descarte = [n for n in self.objetos_temporales if n.estado == "Destino"]
         if len(descarte) > 0:
             self.objetos_temporales[self.objetos_temporales.index(descarte[0])] = obj
         else:
@@ -158,8 +162,8 @@ class Simulacion:
         self.cola_eventos.sort(key=lambda evento: evento.hora)
 
     def mostrar_inicio_dia(self,rnd_p1,tiempo_p1,rnd_p2,tiempo_p2):
-        return ["Inicio del dia", self.tiempo_actual,rnd_p1,tiempo_p1,tiempo_p1+self.tiempo_actual,
-                "-","-",self.grua.estado,len(self.grua.cola_parada_uno),len(self.grua.cola_parada_dos),0.0,0,0,0]
+        return ["Inicio del dia", self.tiempo_actual,rnd_p1,tiempo_p1,tiempo_p1, rnd_p2, tiempo_p2,tiempo_p2,
+                "-", "-", self.grua.estado,len(self.grua.cola_parada_uno),len(self.grua.cola_parada_dos),0.0,0,0,0]
 
     def mostrar_abandono(self):
         return ["Abandono", self.tiempo_actual,"-","-","-","-","-","-","-","-",self.grua.estado,
@@ -215,9 +219,11 @@ class Simulacion:
 
 
     def completar_fila(self,fila_actual,nro_fila):
+        fila = pd.DataFrame(columns = self.columnas, index = [nro_fila])
+        fila.loc[nro_fila] = fila_actual
         for x in self.objetos_temporales:
-            fila_actual = pd.concat([fila_actual,x.get_vector(nro_fila)], axis=1)
-        return fila_actual
+            fila = pd.concat([fila,x.get_vector(nro_fila)], axis=1)
+        return fila
 
 
 s = Simulacion(2.5,1.5,7,480,0,1000,6,5,5)

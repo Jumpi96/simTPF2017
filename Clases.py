@@ -65,13 +65,16 @@ class Auto:
         self.fin_traslado = "-"
         
     def get_vector(self, nro_iteracion):
-        columnas = ["Auto i", "Estado", "Llegada", "Fin espera", "Fin traslado"]
-        vector = pd.DataFrame(columns=columnas, index=nro_iteracion)
-        vector.loc[nro_iteracion]["Auto i"] = self.index
-        vector.loc[nro_iteracion]["Estado"] = self.estado
-        vector.loc[nro_iteracion]["Llegada"] = self.hora_llegada
-        vector.loc[nro_iteracion]["Fin espera"] = self.fin_espera
-        vector.loc[nro_iteracion]["Fin traslado"] = self.fin_traslado
+        i = str(self.index)
+        columnas = ["Auto "+ i, "Estado "+ i,
+                    "Llegada "+ i, "Fin espera "+ i, 
+                    "Fin traslado "+ i]
+        vector = pd.DataFrame(columns=columnas, index=[nro_iteracion])
+        vector.loc[nro_iteracion]["Auto "+ i] = i
+        vector.loc[nro_iteracion]["Estado "+ i] = self.estado
+        vector.loc[nro_iteracion]["Llegada "+ i] = self.hora_llegada
+        vector.loc[nro_iteracion]["Fin espera "+ i] = self.fin_espera
+        vector.loc[nro_iteracion]["Fin traslado "+ i] = self.fin_traslado
         return vector
         
         
