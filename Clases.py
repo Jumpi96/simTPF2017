@@ -21,10 +21,12 @@ class Grua:
     def realizar_abandono(self, tiempo_actual, evento):
         abandona = [x for x in self.cola_parada_uno if x.abandono == evento]
         if len(abandona) > 0:
+            abandona[0].estado = "Abandono"
             self.cola_parada_uno.remove(abandona[0])
         else:
             abandona = [x for x in self.cola_parada_dos if x.abandono == evento]
             if len(abandona) > 0:
+                abandona[0].estado = "Abandono"
                 self.cola_parada_dos.remove(abandona[0])
     
     def trasladar(self, tiempo_actual):
@@ -38,7 +40,7 @@ class Grua:
                     auto_actual.abandono.activo = 0
                     self.carga += 1
                 self.estado = "Viajando a P2"
-                return ["P2", tiempo_actual + self.tiempo_servicio]
+                return Evento("Llegada a P2", tiempo_actual + self.tiempo_servicio)
             else:
                 return None
         elif self.estado == "Cargando P2":
@@ -51,7 +53,7 @@ class Grua:
                     auto_actual.abandono.activo = 0
                     self.carga += 1
                 self.estado = "Viajando a P1"
-                return ["P1", tiempo_actual + self.tiempo_servicio]
+                return Evento("Llegada a P1", tiempo_actual + self.tiempo_servicio)
         else:
             return None
     

@@ -44,6 +44,7 @@ class Simulacion:
             if prox_evento.nombre == "Llegada auto P1":
                 contador_objetos += 1
                 nuevo_auto = Auto(contador_objetos, 1, self.tiempo_actual)
+                self.grua.cola_parada_uno.append(nuevo_auto)
                 nuevo_abandono = Evento("Abandono",self.tiempo_actual+10)
                 self.agregar_evento(nuevo_abandono)
                 nuevo_auto.abandono = nuevo_abandono
@@ -60,6 +61,7 @@ class Simulacion:
             elif prox_evento.nombre == "Llegada auto P2":
                 contador_objetos += 1
                 nuevo_auto = Auto(contador_objetos, 0, self.tiempo_actual)
+                self.grua.cola_parada_dos.append(nuevo_auto)
                 nuevo_abandono = Evento("Abandono", self.tiempo_actual + 10)
                 self.agregar_evento(nuevo_abandono)
                 nuevo_auto.abandono = nuevo_abandono
@@ -74,8 +76,8 @@ class Simulacion:
                 elif not fin_mostrar and self.tiempo_actual >= self.mostrar_desde:
                     fila_actual = self.mostrar_llegada_p2(rnd_llegada, tiempo_llegada)
             elif prox_evento.nombre == "Llegada a P1":
-                self.grua = "Cargando P1"
-                cargados = [n for n in list if n.Estado == "Viajando a P1"]
+                self.grua.estado = "Cargando P1"
+                cargados = [n for n in self.objetos_temporales if n.estado == "Viajando a P1"]
                 for auto in cargados:
                     auto.estado = "Destino"
                     self.cont_atendidos += 1
@@ -89,8 +91,8 @@ class Simulacion:
                 else:
                     fila_actual = self.mostrar_recibe_p1()
             elif prox_evento.nombre == "Llegada a P2":
-                self.grua = "Cargando P2"
-                cargados = [n for n in list if n.Estado == "Viajando a P2"]
+                self.grua.estado = "Cargando P2"
+                cargados = [n for n in self.objetos_temporales if n.estado == "Viajando a P2"]
                 for auto in cargados:
                     auto.estado = "Destino"
                     self.cont_atendidos += 1
@@ -151,15 +153,20 @@ class Simulacion:
             return [rnd,tiempo_espera]#Evento("Llegada auto P2",self.tiempo_actual+tiempo_espera)]
 
     def agregar_obj_temp(self, obj):
-        descarte = [n for n in self.objetos_temporales if n.estado == "Destino"]
+        descarte = [n for n in self.objetos_temporales if n.estado in set(["Destino","Abandono"])]
         if len(descarte) > 0:
-            self.objetos_temporales[self.objetos_temporales.index(descarte[0])] = obj
+            obj.index = self.objetos_temporales.index(descarte[0])
+            self.objetos_temporales[obj.index] = obj
         else:
             self.objetos_temporales.append(obj)
 
 
-    def agregar_evento(self,eventos):
-        self.cola_eventos.append(eventos)
+    def agregar_evento(self, eventos):
+        if type(eventos) == Evento:
+            self.cola_eventos.append(eventos)
+        else:
+            for e in eventos:
+                self.cola_eventos.append(e)
         self.cola_eventos.sort(key=lambda evento: evento.hora)
 
     def mostrar_inicio_dia(self,rnd_p1,tiempo_p1,rnd_p2,tiempo_p2):
