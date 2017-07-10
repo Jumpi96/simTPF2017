@@ -18,13 +18,14 @@ class Grua:
         else:
             return len(self.cola_parada_dos) >= self.serv_min
 
-    def realizar_abandono(self, tiempo_actual, abandono):
-        abandona = [x for x in self.cola_parada_uno if x.abandono == abandono]
+    def realizar_abandono(self, tiempo_actual, evento):
+        abandona = [x for x in self.cola_parada_uno if x.abandono == evento]
         if len(abandona) > 0:
-            self.cola_parada_uno.remove(abandona)
+            self.cola_parada_uno.remove(abandona[0])
         else:
-            abandona = [x for x in self.cola_parada_dos if x.abandono == abandono]
-            self.cola_parada_dos.remove(abandona)
+            abandona = [x for x in self.cola_parada_dos if x.abandono == evento]
+            if len(abandona) > 0:
+                self.cola_parada_dos.remove(abandona[0])
     
     def trasladar(self, tiempo_actual):
         if self.estado == "Cargando P1":

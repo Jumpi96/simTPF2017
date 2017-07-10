@@ -131,6 +131,7 @@ class Simulacion:
                     tabla = fila_actual
                 else:
                     tabla = pd.concat([tabla, fila_actual])
+                print(fila_actual)
                     
 
         #No toca contenido de aca para abajo
