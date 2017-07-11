@@ -2,6 +2,7 @@ from Clases import *
 import random
 import pandas as pd
 import math
+import dfgui
 
 
 class Simulacion:
@@ -35,11 +36,13 @@ class Simulacion:
         contador_objetos = 0
         fila_actual = []
         fin_mostrar = False
+        ultima_fila = False
         self.agregar_evento(Evento("Inicio del dia", 0))
 
-        while self.tiempo_actual < self.tiempo:
+        while len([x for x in self.cola_eventos if x.nombre != "Abandono"])>0:
             prox_evento = self.cola_eventos.pop(0)
             self.tiempo_actual = prox_evento.hora
+            ultima_fila = False
 
             if prox_evento.nombre == "Llegada auto P1":
                 contador_objetos += 1
@@ -52,7 +55,8 @@ class Simulacion:
                 evento_resp = self.grua.trasladar(self.tiempo_actual)
                 rnd_llegada, tiempo_llegada = self.get_llegada_cliente(True)
                 prox_llegada = tiempo_llegada+self.tiempo_actual
-                self.agregar_evento(Evento("Llegada auto P1",prox_llegada))
+                if prox_llegada <= self.tiempo:
+                    self.agregar_evento(Evento("Llegada auto P1",prox_llegada))
                 if evento_resp is not None:
                     self.agregar_evento(evento_resp)
                     fila_actual = self.mostrar_llegada_traslado_p1(rnd_llegada,tiempo_llegada,evento_resp)
@@ -69,7 +73,8 @@ class Simulacion:
                 evento_resp = self.grua.trasladar(self.tiempo_actual)
                 rnd_llegada, tiempo_llegada = self.get_llegada_cliente(False)
                 prox_llegada = tiempo_llegada + self.tiempo_actual
-                self.agregar_evento(Evento("Llegada auto P2", prox_llegada))
+                if prox_llegada <= self.tiempo:
+                    self.agregar_evento(Evento("Llegada auto P2", prox_llegada))
                 if evento_resp is not None:
                     self.agregar_evento(evento_resp)
                     fila_actual = self.mostrar_llegada_traslado_p2(rnd_llegada,tiempo_llegada,evento_resp)
@@ -115,10 +120,12 @@ class Simulacion:
             elif prox_evento.nombre == "Inicio del dia":
                 rnd_llegada_uno, tiempo_llegada_uno = self.get_llegada_cliente(True)
                 prox_llegada_uno = tiempo_llegada_uno + self.tiempo_actual
-                self.agregar_evento(Evento("Llegada auto P1", prox_llegada_uno))
+                if prox_llegada_uno <= self.tiempo:
+                    self.agregar_evento(Evento("Llegada auto P1", prox_llegada_uno))
                 rnd_llegada_dos, tiempo_llegada_dos = self.get_llegada_cliente(False)
                 prox_llegada_dos = tiempo_llegada_dos + self.tiempo_actual
-                self.agregar_evento(Evento("Llegada auto P2", prox_llegada_dos))
+                if prox_llegada_dos <= self.tiempo:
+                    self.agregar_evento(Evento("Llegada auto P2", prox_llegada_dos))
                 if not fin_mostrar and self.tiempo_actual >= self.mostrar_desde:
                     fila_actual = self.mostrar_inicio_dia(rnd_llegada_uno, tiempo_llegada_uno,
                                                           rnd_llegada_dos,tiempo_llegada_dos)
@@ -126,19 +133,22 @@ class Simulacion:
             if contador_filas >= self.iteraciones:
                 fin_mostrar = True
 
-            if not fin_mostrar and self.tiempo_actual >= self.mostrar_desde:
+            if not fin_mostrar and self.tiempo_actual >= self.mostrar_desde and isinstance(fila_actual,list):
                 contador_filas += 1
                 fila_actual = self.completar_fila(fila_actual, contador_filas)
+                ultima_fila = True
                 if contador_filas == 1:
                     tabla = fila_actual
                 else:
-                    tabla = pd.concat([tabla, fila_actual])
-                print(fila_actual)
-                    
+                    if len(fila_actual.columns.tolist()) != len(tabla.columns.tolist()):
+                        tabla = pd.concat([tabla, fila_actual])[fila_actual.columns.tolist()]
+                    else:
+                        tabla = pd.concat([tabla, fila_actual])
+
 
         #No toca contenido de aca para abajo
         tabla_recortada = tabla.loc[:][0:int(contador_filas)]
-        if contador_filas != 0:
+        if contador_filas != 0 and ultima_fila:
             tabla_recortada.loc[contador_filas]["Estado"] = "Fin atencion"
         return tabla_recortada
 
@@ -162,7 +172,7 @@ class Simulacion:
 
 
     def agregar_evento(self, eventos):
-        if type(eventos) == Evento:
+        if type(eventos) != list:
             self.cola_eventos.append(eventos)
         else:
             for e in eventos:
@@ -178,25 +188,25 @@ class Simulacion:
                 len(self.grua.cola_parada_uno),len(self.grua.cola_parada_dos),0.0,0,0,0]
 
     def mostrar_llegada_traslado_p1(self,rnd,tiempo,evento_resp):
-        return ["Llegada auto P1", self.tiempo_actual, rnd, tiempo, rnd+self.tiempo_actual,"-","-","-",
+        return ["Llegada auto P1", self.tiempo_actual, rnd, tiempo, tiempo+self.tiempo_actual,"-","-","-",
                 "P2", evento_resp.hora, "Viajando a P2",len(self.grua.cola_parada_uno),
                 len(self.grua.cola_parada_dos),self.acum_ganancias, self.cont_abandonos,
                 self.cont_atendidos,self.acum_permanencia]
 
     def mostrar_llegada_p1(self, rnd, tiempo):
-        return ["Llegada auto P1", self.tiempo_actual, rnd, tiempo, rnd+self.tiempo_actual,"-","-","-",
+        return ["Llegada auto P1", self.tiempo_actual, rnd, tiempo, tiempo+self.tiempo_actual,"-","-","-",
                 "-", "-", self.grua.estado, len(self.grua.cola_parada_uno),
                 len(self.grua.cola_parada_dos),self.acum_ganancias, self.cont_abandonos,
                 self.cont_atendidos,self.acum_permanencia]
 
     def mostrar_llegada_traslado_p2(self,rnd,tiempo,evento_resp):
-        return ["Llegada auto P2", self.tiempo_actual, "-","-","-", rnd, tiempo, rnd+self.tiempo_actual,
+        return ["Llegada auto P2", self.tiempo_actual, "-","-","-", rnd, tiempo, tiempo+self.tiempo_actual,
                 "P1", evento_resp.hora, "Viajando a P1",len(self.grua.cola_parada_uno),
                 len(self.grua.cola_parada_dos),self.acum_ganancias, self.cont_abandonos,
                 self.cont_atendidos,self.acum_permanencia]
 
     def mostrar_llegada_p2(self, rnd, tiempo):
-        return ["Llegada auto P1", self.tiempo_actual, "-","-","-", rnd, tiempo, rnd+self.tiempo_actual,
+        return ["Llegada auto P2", self.tiempo_actual, "-","-","-", rnd, tiempo, tiempo+self.tiempo_actual,
                 "-", "-", self.grua.estado, len(self.grua.cola_parada_uno),
                 len(self.grua.cola_parada_dos),self.acum_ganancias, self.cont_abandonos,
                 self.cont_atendidos,self.acum_permanencia]
@@ -235,4 +245,7 @@ class Simulacion:
 
 
 s = Simulacion(2.5,1.5,7,480,0,1000,6,5,5)
-s.simular()
+#s = Simulacion(2.5,1.5,7,10,0,1000,6,5,5)
+#print(s.simular())
+tabla = s.simular()
+dfgui.show(tabla)
