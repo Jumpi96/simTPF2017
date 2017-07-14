@@ -16,6 +16,7 @@ class Simulacion:
         self.costo_grua = costo_grua
         self.tiempo = tiempo
         self.tiempo_actual = 0.0
+        self.index_columnas = 0
         self.mostrar_desde = mostrar_desde
         self.iteraciones = iteraciones
         self.tiempo_grua = tiempo_grua
@@ -34,6 +35,7 @@ class Simulacion:
         tabla = pd.DataFrame()
         contador_filas = 0
         contador_objetos = 0
+
         fila_actual = []
         fin_mostrar = False
         ultima_fila = False
@@ -88,6 +90,7 @@ class Simulacion:
                     self.cont_atendidos += 1
                     self.grua.carga -= 1
                     self.acum_ganancias += self.costo_auto
+                    self.acum_permanencia += auto.fin_traslado-auto.hora_llegada
                 self.acum_ganancias -= self.costo_grua
                 evento_resp = self.grua.trasladar(self.tiempo_actual)
                 if evento_resp is not None:
@@ -103,6 +106,7 @@ class Simulacion:
                     self.cont_atendidos += 1
                     self.grua.carga -= 1
                     self.acum_ganancias += self.costo_auto
+                    self.acum_permanencia += auto.fin_traslado - auto.hora_llegada
                 self.acum_ganancias -= self.costo_grua
                 evento_resp = self.grua.trasladar(self.tiempo_actual)
                 if evento_resp is not None:
@@ -165,10 +169,13 @@ class Simulacion:
     def agregar_obj_temp(self, obj):
         descarte = [n for n in self.objetos_temporales if n.estado in set(["Destino","Abandono"])]
         if len(descarte) > 0:
-            obj.index = self.objetos_temporales.index(descarte[0])
-            self.objetos_temporales[obj.index] = obj
+            obj.index = descarte[0].index
+            index = self.objetos_temporales.index(descarte[0])
+            self.objetos_temporales[index] = obj
         else:
             self.objetos_temporales.append(obj)
+            self.index_columnas += 1
+            obj.index = self.index_columnas
 
 
     def agregar_evento(self, eventos):
@@ -185,7 +192,9 @@ class Simulacion:
 
     def mostrar_abandono(self):
         return ["Abandono", self.tiempo_actual,"-","-","-","-","-","-","-","-",self.grua.estado,
-                len(self.grua.cola_parada_uno),len(self.grua.cola_parada_dos),0.0,0,0,0]
+                len(self.grua.cola_parada_uno),len(self.grua.cola_parada_dos),self.acum_ganancias, self.cont_abandonos,
+                self.cont_atendidos,self.acum_permanencia]
+
 
     def mostrar_llegada_traslado_p1(self,rnd,tiempo,evento_resp):
         return ["Llegada auto P1", self.tiempo_actual, rnd, tiempo, tiempo+self.tiempo_actual,"-","-","-",
@@ -244,8 +253,8 @@ class Simulacion:
         return fila
 
 
-s = Simulacion(2.5,1.5,7,480,0,1000,6,5,5)
-#s = Simulacion(2.5,1.5,7,10,0,1000,6,5,5)
+#s = Simulacion(2.5,1.5,7,480,0,1000,6,5,5)
+s = Simulacion(2.5,1.5,7,480,400,100,6,5,3)
 #print(s.simular())
 tabla = s.simular()
 dfgui.show(tabla)
