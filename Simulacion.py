@@ -1,8 +1,9 @@
 from Clases import *
+#from Interfaz import *
 import random
 import pandas as pd
 import math
-import dfgui
+#import dfgui
 
 
 class Simulacion:
@@ -254,7 +255,8 @@ class Simulacion:
 
 
 #s = Simulacion(2.5,1.5,7,480,0,1000,6,5,5)
-s = Simulacion(2.5,1.5,7,480,400,100,6,5,3)
+#s = Simulacion(2.5,1.5,7,480,400,50,4,5,3)
 #print(s.simular())
-tabla = s.simular()
-dfgui.show(tabla)
+#tabla = s.simular()
+#dfgui.show(tabla)
+#View(tabla)
