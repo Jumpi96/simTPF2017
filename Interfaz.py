@@ -1,9 +1,27 @@
+from os import environ
+from subprocess import call
 from tkinter import *
 from tkinter import messagebox as tkMessageBox
 
 def simular():
     if validar():
-        print("Completar")
+        environ['p_precio_auto_a'] = float(e1.get())
+        environ['p_precio_auto_b'] = float(f1.get())
+        environ['p_precio_abandono_a'] = float(e2.get())
+        environ['p_precio_abandono_b'] = float(f2.get())
+        environ['p_costo_grua_a'] = float(e3.get())
+        environ['p_costo_grua_b'] = float(f3.get())
+        environ['p_tiempo_grua_a'] = float(e4.get())
+        environ['p_tiempo_grua_b'] = float(f4.get())
+        environ['p_capac_grua_a'] = float(e5.get())
+        environ['p_capac_grua_b'] = float(f5.get())
+        environ['p_serv_min_a'] = float(e6.get())
+        environ['p_serv_min_b'] = float(f6.get())
+        environ['p_tiempo'] = float(e7.get())
+        environ['p_mostrar_desde'] = float(e8.get())
+        environ['p_iteraciones'] = float(e9.get())
+        
+        call(["runipy", "Notebook.ipynb"])
         
 def validar():
     if (not no_negativo(e1.get())) or (not no_negativo(f1.get())):
