@@ -52,7 +52,7 @@ def validar():
     if (not mayor_que_cero(e5.get())) or (not mayor_que_cero(f5.get())):
         tkMessageBox.showinfo("Error", "La capacidad de la grúa ingresada no es válida.")
         return False
-    if (not no_negativo(e6.get())) or (not no_negativo(f6.get())):
+    if (not mayor_que_cero(e6.get())) or (not mayor_que_cero(f6.get())):
         tkMessageBox.showinfo("Error", "El servicio mínimo ingresado no es válido.")
         return False
     if not mayor_que_cero(e7.get()):
