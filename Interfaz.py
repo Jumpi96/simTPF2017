@@ -3,6 +3,8 @@ import pickle
 import webbrowser
 from tkinter import *
 from tkinter import messagebox as tkMessageBox
+from shutil import copyfile
+
 
 def simular():
     if validar():
@@ -26,13 +28,14 @@ def simular():
         with open('param.pickle', 'wb') as handle:
             pickle.dump(param, handle, protocol=pickle.HIGHEST_PROTOCOL)
         
-        webbrowser.open('http://localhost:8888/notebooks/Notebook.ipynb')
+        limpiar_notebook()
+        webbrowser.open('http://localhost:8888/notebooks/Notebook_app.ipynb')
         
-        #call(["runipy", "Notebook.ipynb"])
-        #notebook = read(open("Notebook.ipynb"), 'json')
-        #r = NotebookRunner(notebook)
-        #r.run_notebook()
+        master.destroy()
         
+def limpiar_notebook():
+    copyfile("Notebook.ipynb","Notebook_app.ipynb")
+    
 def validar():
     if (not no_negativo(e1.get())) or (not no_negativo(f1.get())):
         tkMessageBox.showinfo("Error", "El precio por auto ingresado no es válido.")
