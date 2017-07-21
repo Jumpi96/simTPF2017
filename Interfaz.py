@@ -1,27 +1,37 @@
-from os import environ
-from subprocess import call
+#!/usr/bin/env python3
+import pickle
+import webbrowser
 from tkinter import *
 from tkinter import messagebox as tkMessageBox
 
 def simular():
     if validar():
-        environ['p_precio_auto_a'] = float(e1.get())
-        environ['p_precio_auto_b'] = float(f1.get())
-        environ['p_precio_abandono_a'] = float(e2.get())
-        environ['p_precio_abandono_b'] = float(f2.get())
-        environ['p_costo_grua_a'] = float(e3.get())
-        environ['p_costo_grua_b'] = float(f3.get())
-        environ['p_tiempo_grua_a'] = float(e4.get())
-        environ['p_tiempo_grua_b'] = float(f4.get())
-        environ['p_capac_grua_a'] = float(e5.get())
-        environ['p_capac_grua_b'] = float(f5.get())
-        environ['p_serv_min_a'] = float(e6.get())
-        environ['p_serv_min_b'] = float(f6.get())
-        environ['p_tiempo'] = float(e7.get())
-        environ['p_mostrar_desde'] = float(e8.get())
-        environ['p_iteraciones'] = float(e9.get())
+        param = {}
+        param['p_precio_auto_a'] = str(e1.get())
+        param['p_precio_auto_b'] = str(f1.get())
+        param['p_precio_abandono_a'] = str(e2.get())
+        param['p_precio_abandono_b'] = str(f2.get())
+        param['p_costo_grua_a'] = str(e3.get())
+        param['p_costo_grua_b'] = str(f3.get())
+        param['p_tiempo_grua_a'] = str(e4.get())
+        param['p_tiempo_grua_b'] = str(f4.get())
+        param['p_capac_grua_a'] = str(e5.get())
+        param['p_capac_grua_b'] = str(f5.get())
+        param['p_serv_min_a'] = str(e6.get())
+        param['p_serv_min_b'] = str(f6.get())
+        param['p_tiempo'] = str(e7.get())
+        param['p_mostrar_desde'] = str(e8.get())
+        param['p_iteraciones'] = str(e9.get())
         
-        call(["runipy", "Notebook.ipynb"])
+        with open('param.pickle', 'wb') as handle:
+            pickle.dump(param, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        
+        webbrowser.open('http://localhost:8888/notebooks/Notebook.ipynb')
+        
+        #call(["runipy", "Notebook.ipynb"])
+        #notebook = read(open("Notebook.ipynb"), 'json')
+        #r = NotebookRunner(notebook)
+        #r.run_notebook()
         
 def validar():
     if (not no_negativo(e1.get())) or (not no_negativo(f1.get())):

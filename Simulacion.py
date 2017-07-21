@@ -1,9 +1,7 @@
 from Clases import *
-#from Interfaz import *
 import random
 import pandas as pd
 import math
-#import dfgui
 
 
 class Simulacion:
@@ -28,7 +26,7 @@ class Simulacion:
         self.acum_ganancias = 0.0
         self.acum_permanencia = 0.0
         self.objetos_temporales = []
-        self.columnas = ["Estado","Reloj","RND P1","Tiempo lleg. P1","Prox. lleg. P1","RND P2","Tiempo lleg. P2","Prox. lleg. P2",
+        self.columnas = ["Estado","Reloj","RND P1","Tiempo lleg. P1","Prox. lleg. P1","RND P2","Tiempo lleg. P2","Prox. lleg. P2", "i de llegada",
                     "Destino traslado","Fin traslado","Estado grua","Cola P1","Cola P2","Acum. Ganancias",
                     "Cont. Perdidos","Cont. Atendidos","Acum. Permanencia"]
         
@@ -62,9 +60,9 @@ class Simulacion:
                     self.agregar_evento(Evento("Llegada auto P1",prox_llegada))
                 if evento_resp is not None:
                     self.agregar_evento(evento_resp)
-                    fila_actual = self.mostrar_llegada_traslado_p1(rnd_llegada,tiempo_llegada,evento_resp)
+                    fila_actual = self.mostrar_llegada_traslado_p1(rnd_llegada,tiempo_llegada,evento_resp,nuevo_auto.index)
                 elif not fin_mostrar and self.tiempo_actual >= self.mostrar_desde:
-                    fila_actual = self.mostrar_llegada_p1(rnd_llegada, tiempo_llegada)
+                    fila_actual = self.mostrar_llegada_p1(rnd_llegada, tiempo_llegada,nuevo_auto.index)
             elif prox_evento.nombre == "Llegada auto P2":
                 contador_objetos += 1
                 nuevo_auto = Auto(contador_objetos, 0, self.tiempo_actual)
@@ -80,9 +78,9 @@ class Simulacion:
                     self.agregar_evento(Evento("Llegada auto P2", prox_llegada))
                 if evento_resp is not None:
                     self.agregar_evento(evento_resp)
-                    fila_actual = self.mostrar_llegada_traslado_p2(rnd_llegada,tiempo_llegada,evento_resp)
+                    fila_actual = self.mostrar_llegada_traslado_p2(rnd_llegada,tiempo_llegada,evento_resp,nuevo_auto.index)
                 elif not fin_mostrar and self.tiempo_actual >= self.mostrar_desde:
-                    fila_actual = self.mostrar_llegada_p2(rnd_llegada, tiempo_llegada)
+                    fila_actual = self.mostrar_llegada_p2(rnd_llegada, tiempo_llegada,nuevo_auto.index)
             elif prox_evento.nombre == "Llegada a P1":
                 self.grua.estado = "Cargando P1"
                 cargados = [n for n in self.objetos_temporales if n.estado == "Viajando a P1"]
@@ -188,59 +186,59 @@ class Simulacion:
         self.cola_eventos.sort(key=lambda evento: evento.hora)
 
     def mostrar_inicio_dia(self,rnd_p1,tiempo_p1,rnd_p2,tiempo_p2):
-        return ["Inicio del dia", self.tiempo_actual,rnd_p1,tiempo_p1,tiempo_p1, rnd_p2, tiempo_p2,tiempo_p2,
+        return ["Inicio del dia", self.tiempo_actual,rnd_p1,tiempo_p1,tiempo_p1, rnd_p2, tiempo_p2,tiempo_p2, "-",
                 "-", "-", self.grua.estado,len(self.grua.cola_parada_uno),len(self.grua.cola_parada_dos),0.0,0,0,0]
 
     def mostrar_abandono(self):
-        return ["Abandono", self.tiempo_actual,"-","-","-","-","-","-","-","-",self.grua.estado,
+        return ["Abandono", self.tiempo_actual,"-","-","-","-","-","-","-","-","-",self.grua.estado,
                 len(self.grua.cola_parada_uno),len(self.grua.cola_parada_dos),self.acum_ganancias, self.cont_abandonos,
                 self.cont_atendidos,self.acum_permanencia]
 
 
-    def mostrar_llegada_traslado_p1(self,rnd,tiempo,evento_resp):
-        return ["Llegada auto P1", self.tiempo_actual, rnd, tiempo, tiempo+self.tiempo_actual,"-","-","-",
+    def mostrar_llegada_traslado_p1(self,rnd,tiempo,evento_resp,i):
+        return ["Llegada auto P1", self.tiempo_actual, rnd, tiempo, tiempo+self.tiempo_actual,"-","-","-",i,
                 "P2", evento_resp.hora, "Viajando a P2",len(self.grua.cola_parada_uno),
                 len(self.grua.cola_parada_dos),self.acum_ganancias, self.cont_abandonos,
                 self.cont_atendidos,self.acum_permanencia]
 
-    def mostrar_llegada_p1(self, rnd, tiempo):
-        return ["Llegada auto P1", self.tiempo_actual, rnd, tiempo, tiempo+self.tiempo_actual,"-","-","-",
+    def mostrar_llegada_p1(self, rnd, tiempo,i):
+        return ["Llegada auto P1", self.tiempo_actual, rnd, tiempo, tiempo+self.tiempo_actual,"-","-","-",i,
                 "-", "-", self.grua.estado, len(self.grua.cola_parada_uno),
                 len(self.grua.cola_parada_dos),self.acum_ganancias, self.cont_abandonos,
                 self.cont_atendidos,self.acum_permanencia]
 
-    def mostrar_llegada_traslado_p2(self,rnd,tiempo,evento_resp):
-        return ["Llegada auto P2", self.tiempo_actual, "-","-","-", rnd, tiempo, tiempo+self.tiempo_actual,
+    def mostrar_llegada_traslado_p2(self,rnd,tiempo,evento_resp,i):
+        return ["Llegada auto P2", self.tiempo_actual, "-","-","-", rnd, tiempo, tiempo+self.tiempo_actual,i,
                 "P1", evento_resp.hora, "Viajando a P1",len(self.grua.cola_parada_uno),
                 len(self.grua.cola_parada_dos),self.acum_ganancias, self.cont_abandonos,
                 self.cont_atendidos,self.acum_permanencia]
 
-    def mostrar_llegada_p2(self, rnd, tiempo):
-        return ["Llegada auto P2", self.tiempo_actual, "-","-","-", rnd, tiempo, tiempo+self.tiempo_actual,
+    def mostrar_llegada_p2(self, rnd, tiempo,i):
+        return ["Llegada auto P2", self.tiempo_actual, "-","-","-", rnd, tiempo, tiempo+self.tiempo_actual,i,
                 "-", "-", self.grua.estado, len(self.grua.cola_parada_uno),
                 len(self.grua.cola_parada_dos),self.acum_ganancias, self.cont_abandonos,
                 self.cont_atendidos,self.acum_permanencia]
 
     def mostrar_recibe_traslado_p1(self, evento_resp):
-        return ["Llegada a P1", self.tiempo_actual, "-", "-", "-", "-", "-", "-","P2", evento_resp.hora,
+        return ["Llegada a P1", self.tiempo_actual, "-", "-", "-", "-", "-", "-","-","P2", evento_resp.hora,
                 self.grua.estado, len(self.grua.cola_parada_uno),
                 len(self.grua.cola_parada_dos),self.acum_ganancias, self.cont_abandonos,
                 self.cont_atendidos,self.acum_permanencia]
 
     def mostrar_recibe_p1(self):
-        return ["Llegada a P1", self.tiempo_actual, "-", "-", "-", "-", "-", "-","-","-",
+        return ["Llegada a P1", self.tiempo_actual, "-", "-", "-", "-", "-", "-","-","-","-",
                 self.grua.estado, len(self.grua.cola_parada_uno),
                 len(self.grua.cola_parada_dos),self.acum_ganancias, self.cont_abandonos,
                 self.cont_atendidos,self.acum_permanencia]
 
     def mostrar_recibe_traslado_p2(self,evento_resp):
-        return ["Llegada a P2", self.tiempo_actual, "-", "-", "-", "-", "-", "-", "P1", evento_resp.hora,
+        return ["Llegada a P2", self.tiempo_actual, "-", "-", "-", "-", "-", "-","-", "P1", evento_resp.hora,
                 self.grua.estado, len(self.grua.cola_parada_uno),
                 len(self.grua.cola_parada_dos), self.acum_ganancias, self.cont_abandonos,
                 self.cont_atendidos, self.acum_permanencia]
 
     def mostrar_recibe_p2(self):
-        return ["Llegada a P2", self.tiempo_actual, "-", "-", "-", "-", "-", "-","-","-",
+        return ["Llegada a P2", self.tiempo_actual, "-", "-", "-", "-", "-", "-","-","-","-",
                 self.grua.estado, len(self.grua.cola_parada_uno),
                 len(self.grua.cola_parada_dos),self.acum_ganancias, self.cont_abandonos,
                 self.cont_atendidos,self.acum_permanencia]
