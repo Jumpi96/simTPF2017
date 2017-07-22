@@ -1,4 +1,0 @@
-Abandonos
-Atendidos
-Ganancias
-Promedio permanencia (atendidos)
