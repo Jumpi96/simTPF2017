@@ -25,16 +25,16 @@ def simular():
         param['p_mostrar_desde'] = str(e8.get())
         param['p_iteraciones'] = str(e9.get())
         
-        with open('param.pickle', 'wb') as handle:
+        with open('/media/juampilorenzo/LENOVO/SWAP/TPF SIM II/param.pickle', 'wb') as handle:
             pickle.dump(param, handle, protocol=pickle.HIGHEST_PROTOCOL)
-        
+
         limpiar_notebook()
         webbrowser.open('http://localhost:8888/notebooks/Notebook_app.ipynb')
         
         master.destroy()
         
 def limpiar_notebook():
-    copyfile("Notebook.ipynb","Notebook_app.ipynb")
+    copyfile("/media/juampilorenzo/LENOVO/SWAP/TPF SIM II/Notebook.ipynb","/media/juampilorenzo/LENOVO/SWAP/TPF SIM II/Notebook_app.ipynb")
     
 def validar():
     if (not no_negativo(e1.get())) or (not no_negativo(f1.get())):
