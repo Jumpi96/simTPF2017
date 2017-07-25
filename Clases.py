@@ -4,7 +4,7 @@ import pandas as pd
 class Grua:
     
     def __init__(self, tiempo_servicio, capacidad, serv_min):
-        self.estado = "Cargando P1"
+        self.estado = "Esperando en P1"
         self.cola_parada_uno = []
         self.cola_parada_dos = []
         self.tiempo_servicio = tiempo_servicio
@@ -30,7 +30,7 @@ class Grua:
                 self.cola_parada_dos.remove(abandona[0])
     
     def trasladar(self, tiempo_actual):
-        if self.estado == "Cargando P1":
+        if self.estado == "Esperando en P1":
             if self.suficiente_carga(True):
                 while self.carga < self.capacidad and len(self.cola_parada_uno) > 0:
                     auto_actual = self.cola_parada_uno.pop(0)
@@ -40,10 +40,10 @@ class Grua:
                     auto_actual.abandono.activo = 0
                     self.carga += 1
                 self.estado = "Viajando a P2"
-                return Evento("Llegada a P2", tiempo_actual + self.tiempo_servicio)
+                return Evento("Arribo a P2", tiempo_actual + self.tiempo_servicio)
             else:
                 return None
-        elif self.estado == "Cargando P2":
+        elif self.estado == "Esperando en P2":
             if self.suficiente_carga(False):
                 while self.carga < self.capacidad and len(self.cola_parada_dos) > 0:
                     auto_actual = self.cola_parada_dos.pop(0)
@@ -53,7 +53,7 @@ class Grua:
                     auto_actual.abandono.activo = 0
                     self.carga += 1
                 self.estado = "Viajando a P1"
-                return Evento("Llegada a P1", tiempo_actual + self.tiempo_servicio)
+                return Evento("Arribo a P1", tiempo_actual + self.tiempo_servicio)
         else:
             return None
     
